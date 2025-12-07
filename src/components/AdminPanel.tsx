@@ -26,6 +26,16 @@ export default function AdminPanel() {
     company_logo: 'https://images.unsplash.com/photo-1549923746-c502d488b3ea?auto=format&fit=crop&q=80&w=200'
   });
 
+  // User Edit State
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [editingUser, setEditingUser] = useState<any>(null);
+  const [userForm, setUserForm] = useState({
+    full_name: '',
+    email: '',
+    role: 'seeker',
+    password: '' // Placeholder for UI request
+  });
+
   // Stats state
   const [stats, setStats] = useState({
     users: 0,
@@ -197,6 +207,52 @@ export default function AdminPanel() {
     setShowJobForm(true);
   };
 
+  const handleEditUser = (user: any) => {
+    setEditingUser(user);
+    setUserForm({
+      full_name: user.full_name || '',
+      email: user.email || '', // Note: Updating this here only updates profile, not auth
+      role: user.role || 'seeker',
+      password: ''
+    });
+    setShowUserForm(true);
+  };
+
+  const handleSaveUser = async () => {
+    if (!editingUser) return;
+
+    try {
+      const updates: any = {
+        full_name: userForm.full_name,
+        role: userForm.role,
+        // We can update email in profile for display, but it won't change login email without admin API
+        email: userForm.email
+      };
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', editingUser.id);
+
+      if (error) throw error;
+
+      // Handle Password/Email Auth warnings
+      if (userForm.password) {
+        alert('Note: Password update requires server-side admin privileges. This simulated panel only updates profile details.');
+      }
+      if (userForm.email !== editingUser.email) {
+        alert('Note: Email updated in profile only. Login email remains unchanged due to client-side security restrictions.');
+      }
+
+      loadData();
+      setShowUserForm(false);
+      setEditingUser(null);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      alert('Failed to update user');
+    }
+  };
+
   // Stats (calculated from loaded data + placeholders for optimization)
 
   return (
@@ -325,7 +381,13 @@ export default function AdminPanel() {
                           <td className="py-3 px-4 text-gray-600">
                             {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-3 px-4 flex gap-2">
+                            <button
+                              onClick={() => handleEditUser(user)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded"
+                            >
+                              <Edit className="size-4" />
+                            </button>
                             {user.role !== 'admin' && (
                               <button
                                 onClick={() => handleDeleteUser(user.id)}
@@ -530,6 +592,81 @@ export default function AdminPanel() {
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md"
               >
                 {editingJob ? 'Update Job' : 'Add Job'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Edit Modal */}
+      {showUserForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl max-w-md w-full p-8">
+            <h2 className="text-2xl text-gray-900 mb-6">Edit User</h2>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-gray-700 mb-2">Full Name</label>
+                <input
+                  type="text"
+                  value={userForm.full_name}
+                  onChange={(e) => setUserForm({ ...userForm, full_name: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-2">Email</label>
+                <input
+                  type="email"
+                  value={userForm.email}
+                  onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="text-xs text-amber-600 mt-1">Caution: Changing this here only updates the profile display.</p>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-2">Role</label>
+                <select
+                  value={userForm.role}
+                  onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="seeker">Seeker</option>
+                  <option value="hirer">Hirer</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-gray-700 mb-2">New Password</label>
+                <input
+                  type="password"
+                  value={userForm.password}
+                  onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Leave blank to keep unchanged"
+                />
+                <p className="text-xs text-gray-500 mt-1">Requires server-side admin privileges.</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowUserForm(false);
+                  setEditingUser(null);
+                }}
+                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveUser}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md"
+              >
+                Save Changes
               </button>
             </div>
           </div>
