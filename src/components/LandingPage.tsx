@@ -43,7 +43,7 @@ export default function LandingPage() {
                 Create Your Portfolio
               </Link>
               <button
-                onClick={() => navigate('/p/demo')}
+                onClick={() => navigate('/templates/preview/modern')}
                 className="px-8 py-3 bg-white text-indigo-600 border-2 border-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors shadow-md"
               >
                 View Demo Portfolio
