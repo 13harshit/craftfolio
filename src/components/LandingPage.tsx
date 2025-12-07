@@ -149,9 +149,9 @@ export default function LandingPage() {
             <div>
               <h4 className="text-white mb-4">Product</h4>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-indigo-400 transition-colors">Templates</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-indigo-400 transition-colors">Features</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-indigo-400 transition-colors">Pricing</a></li>
+                <li><Link to="/templates" className="text-gray-400 hover:text-indigo-400 transition-colors">Templates</Link></li>
+                <li><Link to="/features" className="text-gray-400 hover:text-indigo-400 transition-colors">Features</Link></li>
+                <li><Link to="/pricing" className="text-gray-400 hover:text-indigo-400 transition-colors">Pricing</Link></li>
               </ul>
             </div>
             <div>

@@ -16,6 +16,10 @@ import Settings from './components/Settings';
 import About from './components/About';
 import Contact from './components/Contact';
 import Privacy from './components/Privacy';
+import Templates from './components/Templates';
+import TemplateDemo from './components/TemplateDemo';
+import Features from './components/Features';
+import Pricing from './components/Pricing';
 import { supabase } from './lib/supabase';
 
 export default function App() {
@@ -75,7 +79,10 @@ export default function App() {
           !location.pathname.startsWith('/p/') &&
           location.pathname !== '/about' &&
           location.pathname !== '/contact' &&
-          location.pathname !== '/privacy'
+          location.pathname !== '/privacy' &&
+          !location.pathname.startsWith('/templates') &&
+          location.pathname !== '/features' &&
+          location.pathname !== '/pricing'
         )) {
           navigate('/');
         }
@@ -317,7 +324,16 @@ function AppContent({ currentUser, handleLogout }: { currentUser: any, handleLog
         <Route path="/p/:userId" element={<PublicWrapper />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/p/:userId" element={<PublicWrapper />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/privacy" element={<Privacy />} />
+
+        {/* Marketing Routes */}
+        <Route path="/templates" element={<Templates />} />
+        <Route path="/templates/preview/:templateId" element={<TemplateDemo />} />
+        <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
 
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
