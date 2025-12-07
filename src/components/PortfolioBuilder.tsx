@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Eye, Plus, Trash2, Palette } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Plus, Trash2, Palette, Share2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
@@ -185,8 +185,19 @@ export default function PortfolioBuilder({ user }: PortfolioBuilderProps) {
             </button>
             <button
               onClick={() => {
+                const url = `https://craftfolio-pro.vercel.app/p/${user.id}`;
+                navigator.clipboard.writeText(url);
+                alert('Public link copied to clipboard!');
+              }}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm text-gray-700"
+            >
+              <Share2 className="size-4" />
+              Share
+            </button>
+            <button
+              onClick={() => {
                 handleSave();
-                navigate(`/p/${user.id}`);
+                window.open(`/p/${user.id}`, '_blank');
               }}
               className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md"
             >

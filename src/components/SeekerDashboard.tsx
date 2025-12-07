@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Briefcase, FileText, Eye, Plus, TrendingUp } from 'lucide-react';
+import { Briefcase, FileText, Eye, Plus, TrendingUp, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 
@@ -164,6 +164,20 @@ export default function SeekerDashboard({ user }: SeekerDashboardProps) {
                             <div className="flex flex-col items-center gap-2">
                                 <FileText className="size-8 text-gray-400 group-hover:text-purple-600" />
                                 <span className="text-gray-700 group-hover:text-purple-600">My Applications</span>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                const url = `https://craftfolio-pro.vercel.app/p/${user.id}`;
+                                navigator.clipboard.writeText(url);
+                                alert('Public link copied to clipboard!');
+                            }}
+                            className="p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-pink-500 hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-50 transition-all group"
+                        >
+                            <div className="flex flex-col items-center gap-2">
+                                <Share2 className="size-8 text-gray-400 group-hover:text-pink-600" />
+                                <span className="text-gray-700 group-hover:text-pink-600">Share Profile</span>
                             </div>
                         </button>
                     </div>
