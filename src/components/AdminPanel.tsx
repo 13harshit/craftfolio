@@ -222,34 +222,24 @@ export default function AdminPanel() {
     if (!editingUser) return;
 
     try {
-      const updates: any = {
-        full_name: userForm.full_name,
-        role: userForm.role,
-        // We can update email in profile for display, but it won't change login email without admin API
-        email: userForm.email
-      };
-
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', editingUser.id);
+      // Use the secure RPC function we created
+      const { error } = await supabase.rpc('admin_update_user', {
+        target_user_id: editingUser.id,
+        new_email: userForm.email,
+        new_password: userForm.password || null, // Send null if empty to skip update
+        new_full_name: userForm.full_name,
+        new_role: userForm.role
+      });
 
       if (error) throw error;
 
-      // Handle Password/Email Auth warnings
-      if (userForm.password) {
-        alert('Note: Password update requires server-side admin privileges. This simulated panel only updates profile details.');
-      }
-      if (userForm.email !== editingUser.email) {
-        alert('Note: Email updated in profile only. Login email remains unchanged due to client-side security restrictions.');
-      }
-
+      alert('User updated successfully!');
       loadData();
       setShowUserForm(false);
       setEditingUser(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating user:', error);
-      alert('Failed to update user');
+      alert('Failed to update user: ' + (error.message || error.details || 'Unknown error'));
     }
   };
 
@@ -623,7 +613,6 @@ export default function AdminPanel() {
                   onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-xs text-amber-600 mt-1">Caution: Changing this here only updates the profile display.</p>
               </div>
 
               <div>
@@ -648,7 +637,6 @@ export default function AdminPanel() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Leave blank to keep unchanged"
                 />
-                <p className="text-xs text-gray-500 mt-1">Requires server-side admin privileges.</p>
               </div>
             </div>
 
