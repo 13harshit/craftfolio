@@ -24,6 +24,13 @@ export default function Settings({ user }: SettingsProps) {
         linkedin_url: user?.linkedin_url || ''
     });
 
+    // Password State
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+    });
+
     useEffect(() => {
         if (user) {
             setFormData({
@@ -37,6 +44,53 @@ export default function Settings({ user }: SettingsProps) {
             });
         }
     }, [user]);
+
+    const handleChangePassword = async () => {
+        if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+            alert('Please fill in all password fields');
+            return;
+        }
+
+        if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+            alert('New passwords do not match');
+            return;
+        }
+
+        if (passwordForm.newPassword.length < 6) {
+            alert('Password must be at least 6 characters long');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // 1. Verify current password by attempting a sign-in
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user.email,
+                password: passwordForm.currentPassword
+            });
+
+            if (signInError) {
+                alert('Current password is incorrect');
+                setLoading(false);
+                return;
+            }
+
+            // 2. Update password
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: passwordForm.newPassword
+            });
+
+            if (updateError) throw updateError;
+
+            setSuccessMessage('Password updated successfully!');
+            setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (error: any) {
+            console.error('Error changing password:', error);
+            alert('Failed to update password: ' + (error.message || 'Unknown error'));
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -87,8 +141,8 @@ export default function Settings({ user }: SettingsProps) {
                         <button
                             onClick={() => setActiveTab('profile')}
                             className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${activeTab === 'profile'
-                                    ? 'border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50/50'
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                ? 'border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50/50'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                 }`}
                         >
                             <User className="size-5" />
@@ -97,8 +151,8 @@ export default function Settings({ user }: SettingsProps) {
                         <button
                             onClick={() => setActiveTab('account')}
                             className={`flex items-center gap-2 px-6 py-4 font-medium transition-colors ${activeTab === 'account'
-                                    ? 'border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50/50'
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                ? 'border-b-2 border-indigo-600 text-indigo-600 bg-indigo-50/50'
+                                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                                 }`}
                         >
                             <Shield className="size-5" />
@@ -237,6 +291,57 @@ export default function Settings({ user }: SettingsProps) {
                                                 {user.email}
                                             </div>
                                             <p className="text-xs text-gray-500 mt-1">Email cannot be changed directly.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="border-t border-gray-200 pt-8">
+                                    <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                                        <Shield className="size-5" />
+                                        Security
+                                    </h3>
+
+                                    <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+                                        <h4 className="font-medium text-gray-900">Change Password</h4>
+                                        <div className="space-y-4 max-w-lg">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                                                <input
+                                                    type="password"
+                                                    value={passwordForm.currentPassword}
+                                                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                    placeholder="Enter current password"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                                                <input
+                                                    type="password"
+                                                    value={passwordForm.newPassword}
+                                                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                    placeholder="Enter new password"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                                                <input
+                                                    type="password"
+                                                    value={passwordForm.confirmPassword}
+                                                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                                    placeholder="Confirm new password"
+                                                />
+                                            </div>
+
+                                            <button
+                                                onClick={handleChangePassword}
+                                                disabled={loading}
+                                                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors disabled:opacity-50"
+                                            >
+                                                {loading ? 'Updating...' : 'Update Password'}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
