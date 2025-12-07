@@ -204,13 +204,7 @@ export default function AdminPanel() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-2 text-gray-700 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeft className="size-5" />
-            Back to Dashboard
-          </button>
+
           <h1 className="text-3xl text-gray-900 mb-2">Admin Panel</h1>
           <p className="text-gray-600">Manage users and job listings</p>
         </div>

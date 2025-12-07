@@ -185,13 +185,16 @@ function AppContent({ currentUser, handleLogout }: { currentUser: any, handleLog
 
               {/* Desktop Navigation */}
               <div className="hidden md:flex items-center gap-6">
-                <Link
-                  to="/dashboard"
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${location.pathname === '/dashboard' || location.pathname === '/hirer' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-100'}`}
-                >
-                  <Home className="size-4" />
-                  Dashboard
-                </Link>
+                {/* Dashboard Link - Hidden for Admin as they have Admin Panel */}
+                {currentUser.role !== 'admin' && (
+                  <Link
+                    to="/dashboard"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${location.pathname === '/dashboard' || location.pathname === '/hirer' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                  >
+                    <Home className="size-4" />
+                    Dashboard
+                  </Link>
+                )}
 
                 {currentUser.role === 'seeker' && (
                   <>
