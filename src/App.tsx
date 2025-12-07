@@ -20,6 +20,7 @@ import Templates from './components/Templates';
 import TemplateDemo from './components/TemplateDemo';
 import Features from './components/Features';
 import Pricing from './components/Pricing';
+import ScrollToTop from './components/ScrollToTop';
 import { supabase } from './lib/supabase';
 
 export default function App() {
@@ -171,6 +172,7 @@ function AppContent({ currentUser, handleLogout }: { currentUser: any, handleLog
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ScrollToTop />
       {/* Navigation bar - conditionally rendered based on user and path */}
       {currentUser && !location.pathname.startsWith('/p/') && (
         <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
