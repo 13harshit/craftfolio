@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Mail, Phone, MapPin, Globe, Linkedin, Github, ExternalLink, Loader } from 'lucide-react';
+import { ArrowLeft, Mail, Phone, MapPin, Globe, Linkedin, Github, ExternalLink, Loader, Download } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 import { supabase } from '../lib/supabase';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -53,6 +54,30 @@ export default function PublicPortfolio() {
       console.error('Error fetching public portfolio:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPDF = async () => {
+    setDownloading(true);
+    const element = document.getElementById('portfolio-content');
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: `${user?.full_name || 'portfolio'}-craftfolio.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+      // @ts-ignore
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -125,7 +150,7 @@ export default function PublicPortfolio() {
     <div className="min-h-screen bg-gray-50">
       {/* Back Button */}
       <div className="bg-white border-b sticky top-0 z-40">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <button
             onClick={onBack}
             className="flex items-center gap-2 text-gray-700 hover:text-gray-900"
@@ -133,153 +158,166 @@ export default function PublicPortfolio() {
             <ArrowLeft className="size-5" />
             Back
           </button>
+
+          <button
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50"
+          >
+            {downloading ? <Loader className="size-4 animate-spin" /> : <Download className="size-4" />}
+            {downloading ? 'Exporting...' : 'Download PDF'}
+          </button>
         </div>
       </div>
 
-      {/* Hero Section */}
-      <div className={`${styles.headerBg} py-20`}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <h1 className={`text-5xl ${styles.heroText} mb-4`}>{user.full_name || user.email}</h1>
-            {portfolio.title && (
-              <p className={`text-2xl ${styles.heroText} mb-6 opacity-90`}>
-                {portfolio.title}
-              </p>
-            )}
-            {portfolio.bio && (
-              <p className={`text-lg ${styles.heroText} max-w-2xl mx-auto opacity-90`}>
-                {portfolio.bio}
-              </p>
-            )}
+      {/* Portfolio Content Wrapper for PDF */}
+      <div id="portfolio-content">
 
-            {/* Contact Info */}
-            <div className="flex flex-wrap justify-center gap-6 mt-8">
-              {portfolio.location && (
-                <div className={`flex items-center gap-2 ${styles.heroText} opacity-90`}>
-                  <MapPin className="size-4" />
-                  <span>{portfolio.location}</span>
-                </div>
+        {/* Hero Section */}
+        <div className={`${styles.headerBg} py-20`}>
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center">
+              <h1 className={`text-5xl ${styles.heroText} mb-4`}>{user.full_name || user.email}</h1>
+              {portfolio.title && (
+                <p className={`text-2xl ${styles.heroText} mb-6 opacity-90`}>
+                  {portfolio.title}
+                </p>
               )}
-              {portfolio.email && (
-                <a href={`mailto:${portfolio.email}`} className={`flex items-center gap-2 ${styles.heroText} opacity-90 hover:opacity-100`}>
-                  <Mail className="size-4" />
-                  <span>{portfolio.email}</span>
-                </a>
+              {portfolio.bio && (
+                <p className={`text-lg ${styles.heroText} max-w-2xl mx-auto opacity-90`}>
+                  {portfolio.bio}
+                </p>
               )}
-              {portfolio.phone && (
-                <a href={`tel:${portfolio.phone}`} className={`flex items-center gap-2 ${styles.heroText} opacity-90 hover:opacity-100`}>
-                  <Phone className="size-4" />
-                  <span>{portfolio.phone}</span>
-                </a>
-              )}
-            </div>
 
-            {/* Social Links */}
-            <div className="flex justify-center gap-4 mt-6">
-              {portfolio.website && (
-                <a
-                  href={portfolio.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all`}
-                >
-                  <Globe className={`size-5 ${styles.heroText}`} />
-                </a>
-              )}
-              {portfolio.linkedin && (
-                <a
-                  href={portfolio.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all`}
-                >
-                  <Linkedin className={`size-5 ${styles.heroText}`} />
-                </a>
-              )}
-              {portfolio.github && (
-                <a
-                  href={portfolio.github}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all`}
-                >
-                  <Github className={`size-5 ${styles.heroText}`} />
-                </a>
-              )}
+              {/* Contact Info */}
+              <div className="flex flex-wrap justify-center gap-6 mt-8">
+                {portfolio.location && (
+                  <div className={`flex items-center gap-2 ${styles.heroText} opacity-90`}>
+                    <MapPin className="size-4" />
+                    <span>{portfolio.location}</span>
+                  </div>
+                )}
+                {portfolio.email && (
+                  <a href={`mailto:${portfolio.email}`} className={`flex items-center gap-2 ${styles.heroText} opacity-90 hover:opacity-100`}>
+                    <Mail className="size-4" />
+                    <span>{portfolio.email}</span>
+                  </a>
+                )}
+                {portfolio.phone && (
+                  <a href={`tel:${portfolio.phone}`} className={`flex items-center gap-2 ${styles.heroText} opacity-90 hover:opacity-100`}>
+                    <Phone className="size-4" />
+                    <span>{portfolio.phone}</span>
+                  </a>
+                )}
+              </div>
+
+              {/* Social Links */}
+              <div className="flex justify-center gap-4 mt-6">
+                {portfolio.website && (
+                  <a
+                    href={portfolio.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`p-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all`}
+                  >
+                    <Globe className={`size-5 ${styles.heroText}`} />
+                  </a>
+                )}
+                {portfolio.linkedin && (
+                  <a
+                    href={portfolio.linkedin}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`p-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all`}
+                  >
+                    <Linkedin className={`size-5 ${styles.heroText}`} />
+                  </a>
+                )}
+                {portfolio.github && (
+                  <a
+                    href={portfolio.github}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`p-3 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-all`}
+                  >
+                    <Github className={`size-5 ${styles.heroText}`} />
+                  </a>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Skills */}
-        {portfolio.skills && portfolio.skills.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-3xl text-gray-900 mb-6">Skills</h2>
-            <div className="flex flex-wrap gap-3">
-              {portfolio.skills.map((skill: string, index: number) => (
-                <span
-                  key={index}
-                  className={`px-4 py-2 ${styles.badge} rounded-lg`}
-                >
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Skills */}
+          {portfolio.skills && portfolio.skills.length > 0 && (
+            <section className="mb-12">
+              <h2 className="text-3xl text-gray-900 mb-6">Skills</h2>
+              <div className="flex flex-wrap gap-3">
+                {portfolio.skills.map((skill: string, index: number) => (
+                  <span
+                    key={index}
+                    className={`px-4 py-2 ${styles.badge} rounded-lg`}
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            </section>
+          )}
 
-        {/* Projects */}
-        {portfolio.projects && portfolio.projects.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-3xl text-gray-900 mb-6">Projects</h2>
-            <div className="grid md:grid-cols-2 gap-6">
-              {portfolio.projects.map((project: any, index: number) => (
-                <div key={index} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
-                  <h3 className="text-xl text-gray-900 mb-2">{project.title}</h3>
-                  <p className="text-gray-600 mb-3">{project.description}</p>
-                  {project.technologies && (
-                    <p className="text-sm text-gray-500 mb-3">
-                      <span className={`${styles.primaryText}`}>Technologies:</span> {project.technologies}
-                    </p>
-                  )}
-                  {project.link && (
-                    <a
-                      href={project.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex items-center gap-2 ${styles.primaryText} ${styles.primaryTextHover}`}
-                    >
-                      View Project
-                      <ExternalLink className="size-4" />
-                    </a>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Experience */}
-        {portfolio.experience && portfolio.experience.length > 0 && (
-          <section className="mb-12">
-            <h2 className="text-3xl text-gray-900 mb-6">Work Experience</h2>
-            <div className="space-y-6">
-              {portfolio.experience.map((exp: any, index: number) => (
-                <div key={index} className="bg-white rounded-xl shadow-sm p-6">
-                  <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-3">
-                    <div>
-                      <h3 className="text-xl text-gray-900">{exp.position}</h3>
-                      <p className={`${styles.primaryText}`}>{exp.company}</p>
-                    </div>
-                    <span className="text-gray-500 mt-1 md:mt-0">{exp.duration}</span>
+          {/* Projects */}
+          {portfolio.projects && portfolio.projects.length > 0 && (
+            <section className="mb-12">
+              <h2 className="text-3xl text-gray-900 mb-6">Projects</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                {portfolio.projects.map((project: any, index: number) => (
+                  <div key={index} className="bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow">
+                    <h3 className="text-xl text-gray-900 mb-2">{project.title}</h3>
+                    <p className="text-gray-600 mb-3">{project.description}</p>
+                    {project.technologies && (
+                      <p className="text-sm text-gray-500 mb-3">
+                        <span className={`${styles.primaryText}`}>Technologies:</span> {project.technologies}
+                      </p>
+                    )}
+                    {project.link && (
+                      <a
+                        href={project.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex items-center gap-2 ${styles.primaryText} ${styles.primaryTextHover}`}
+                      >
+                        View Project
+                        <ExternalLink className="size-4" />
+                      </a>
+                    )}
                   </div>
-                  <p className="text-gray-600">{exp.description}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Experience */}
+          {portfolio.experience && portfolio.experience.length > 0 && (
+            <section className="mb-12">
+              <h2 className="text-3xl text-gray-900 mb-6">Work Experience</h2>
+              <div className="space-y-6">
+                {portfolio.experience.map((exp: any, index: number) => (
+                  <div key={index} className="bg-white rounded-xl shadow-sm p-6">
+                    <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-3">
+                      <div>
+                        <h3 className="text-xl text-gray-900">{exp.position}</h3>
+                        <p className={`${styles.primaryText}`}>{exp.company}</p>
+                      </div>
+                      <span className="text-gray-500 mt-1 md:mt-0">{exp.duration}</span>
+                    </div>
+                    <p className="text-gray-600">{exp.description}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       </div>
     </div>
   );
