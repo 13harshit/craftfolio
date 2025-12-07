@@ -13,6 +13,9 @@ import MyApplications from './components/MyApplications';
 import PostJob from './components/PostJob';
 import ApplicantReview from './components/ApplicantReview';
 import Settings from './components/Settings';
+import About from './components/About';
+import Contact from './components/Contact';
+import Privacy from './components/Privacy';
 import { supabase } from './lib/supabase';
 
 export default function App() {
@@ -66,7 +69,14 @@ export default function App() {
 
         // Only redirect to home if we were on a protected route or explicit logout
         // We use 'SIGNED_OUT' event or check path
-        if (event === 'SIGNED_OUT' || (location.pathname !== '/auth' && location.pathname !== '/' && !location.pathname.startsWith('/p/'))) {
+        if (event === 'SIGNED_OUT' || (
+          location.pathname !== '/auth' &&
+          location.pathname !== '/' &&
+          !location.pathname.startsWith('/p/') &&
+          location.pathname !== '/about' &&
+          location.pathname !== '/contact' &&
+          location.pathname !== '/privacy'
+        )) {
           navigate('/');
         }
       }
@@ -305,6 +315,9 @@ function AppContent({ currentUser, handleLogout }: { currentUser: any, handleLog
 
         {/* Public Routes */}
         <Route path="/p/:userId" element={<PublicWrapper />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy" element={<Privacy />} />
 
         {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />

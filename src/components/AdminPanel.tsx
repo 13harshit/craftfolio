@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Users, Briefcase, FileText, Plus, Trash2, Edit, Loader } from 'lucide-react';
+import { ArrowLeft, Users, Briefcase, FileText, Plus, Trash2, Edit, Loader, MessageSquare } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 import { useNavigate } from 'react-router-dom';
@@ -8,9 +8,10 @@ export default function AdminPanel() {
   const navigate = useNavigate();
   // Using navigate(-1) for back button logic or explicit path
   const onBack = () => navigate('/dashboard');
-  const [activeTab, setActiveTab] = useState<'users' | 'jobs'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'jobs' | 'messages'>('users');
   const [users, setUsers] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showJobForm, setShowJobForm] = useState(false);
   const [editingJob, setEditingJob] = useState<any>(null);
@@ -55,6 +56,15 @@ export default function AdminPanel() {
 
       if (jobsError) throw jobsError;
       setJobs(jobList || []);
+
+      // Fetch Messages
+      const { data: msgList, error: msgError } = await supabase
+        .from('contact_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (msgError) console.error('Error fetching messages:', msgError); // Don't block whole loading
+      setMessages(msgList || []);
 
       // Fetch Counts
       const { count: portfoliosCount } = await supabase
@@ -276,6 +286,18 @@ export default function AdminPanel() {
                   Jobs
                 </div>
               </button>
+              <button
+                onClick={() => setActiveTab('messages')}
+                className={`px-6 py-4 border-b-2 transition-colors ${activeTab === 'messages'
+                  ? 'border-blue-600 text-blue-600'
+                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                  }`}
+              >
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="size-5" />
+                  Messages
+                </div>
+              </button>
             </div>
           </div>
 
@@ -323,6 +345,33 @@ export default function AdminPanel() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            ) : activeTab === 'messages' ? (
+              <div>
+                <h3 className="text-lg text-gray-900 mb-6">Contact Messages</h3>
+                <div className="space-y-4">
+                  {messages.length === 0 ? (
+                    <p className="text-gray-500">No messages found.</p>
+                  ) : (
+                    messages.map((msg) => (
+                      <div key={msg.id} className="border border-gray-200 rounded-lg p-6 bg-white shadow-sm">
+                        <div className="flex justify-between items-start mb-4">
+                          <div>
+                            <h4 className="text-lg font-medium text-gray-900">{msg.name}</h4>
+                            <a href={`mailto:${msg.email}`} className="text-indigo-600 hover:text-indigo-800 text-sm">{msg.email}</a>
+                            {msg.phone && <p className="text-gray-500 text-sm mt-1">{msg.phone}</p>}
+                          </div>
+                          <span className="text-xs text-gray-400">
+                            {new Date(msg.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="bg-gray-50 p-4 rounded-lg text-gray-700 whitespace-pre-wrap">
+                          {msg.message}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             ) : (
